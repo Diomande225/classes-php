@@ -7,7 +7,7 @@ require_once 'User.php';
 $user = new User('localhost', 'root', '', 'classes');
 
 // Test de l'enregistrement d'un nouvel utilisateur
-$registerInfo = $user->register("johndoe", "password123", "johndoe@example.com", "John", "Doe");
+$registerInfo = $user->register("login", "password", "email", "firstname", "lastname");
 echo "User registered: ";
 print_r($registerInfo);
 echo "<br>";
