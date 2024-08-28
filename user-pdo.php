@@ -1,5 +1,5 @@
 <?php
-class User {
+class Userpdo {
     private $conn;
 
     public $id;
@@ -15,18 +15,21 @@ class User {
     // Méthode pour créer un utilisateur
     public function createUser($password) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $this->login, $hashedPassword, $this->email, $this->firstname, $this->lastname);
-        return $stmt->execute();
+        $stmt = $this->conn->prepare("INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES (:login, :password, :email, :firstname, :lastname)");
+        return $stmt->execute([
+            'login' => $this->login,
+            'password' => $hashedPassword,
+            'email' => $this->email,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname
+        ]);
     }
 
     // Méthode pour se connecter
     public function login($login, $password) {
-        $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE login = ?");
-        $stmt->bind_param("s", $login);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE login = :login");
+        $stmt->execute(['login' => $login]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
             return $user;
@@ -38,30 +41,32 @@ class User {
     // Méthode pour obtenir tous les utilisateurs
     public function getAllUsers() {
         $stmt = $this->conn->query("SELECT * FROM utilisateurs");
-        return $stmt->fetch_all(MYSQLI_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Méthode pour supprimer un utilisateur
     public function deleteUser($userId) {
-        $stmt = $this->conn->prepare("DELETE FROM utilisateurs WHERE id = ?");
-        $stmt->bind_param("i", $userId);
-        return $stmt->execute();
+        $stmt = $this->conn->prepare("DELETE FROM utilisateurs WHERE id = :id");
+        return $stmt->execute(['id' => $userId]);
     }
 
     // Méthode pour mettre à jour les informations de l'utilisateur
     public function updateUser() {
-        $stmt = $this->conn->prepare("UPDATE utilisateurs SET login = ?, email = ?, firstname = ?, lastname = ? WHERE id = ?");
-        $stmt->bind_param("ssssi", $this->login, $this->email, $this->firstname, $this->lastname, $this->id);
-        return $stmt->execute();
+        $stmt = $this->conn->prepare("UPDATE utilisateurs SET login = :login, email = :email, firstname = :firstname, lastname = :lastname WHERE id = :id");
+        return $stmt->execute([
+            'login' => $this->login,
+            'email' => $this->email,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'id' => $this->id
+        ]);
     }
 
     // Méthode pour obtenir les détails d'un utilisateur par ID
     public function getUserById($userId) {
-        $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE id = ?");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+        $stmt = $this->conn->prepare("SELECT * FROM utilisateurs WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Méthode pour obtenir toutes les informations de l'utilisateur connecté
